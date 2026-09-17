@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Task List</title>
+<style>
+  body { font-family: sans-serif; max-width: 500px; margin: 40px auto; }
+  #task-list { list-style: none; padding: 0; }
+  #task-list li {
+    padding: 8px; border: 1px solid #ccc; margin-bottom: 6px;
+    cursor: pointer; border-radius: 4px;
+  }
+  #task-list li.done { text-decoration: line-through; color: #888; background: #f0f0f0; }
+  #add-form { display: flex; gap: 8px; margin-bottom: 20px; }
+  #title-input { flex: 1; padding: 6px; }
+  button { padding: 6px 12px; }
+</style>
+</head>
+<body>
+
+<h1>Tasks</h1>
+
+<form id="add-form">
+  <input type="text" id="title-input" placeholder="New task title" required>
+  <button type="submit">Add</button>
+</form>
+
+<ul id="task-list"></ul>
+
+<script>
+const API_URL = "http://127.0.0.1:8000/tasks";
+
+const taskList = document.getElementById("task-list");
+const addForm = document.getElementById("add-form");
+const titleInput = document.getElementById("title-input");
+
+async function fetchTasks() {
+  const res = await fetch(API_URL);
+  const tasks = await res.json();
+  renderTasks(tasks);
+}
+
+function renderTasks(tasks) {
+  taskList.innerHTML = "";
+  tasks.forEach(task => {
+    const li = document.createElement("li");
+    li.textContent = task.title;
+    if (task.done) li.classList.add("done");
+    li.addEventListener("click", () => completeTask(task.id));
+    taskList.appendChild(li);
+  });
+}
+
+async function addTask(title) {
+  await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title })
+  });
+  fetchTasks();
+}
+
+async function completeTask(id) {
+  await fetch(`${API_URL}/${id}/complete`, { method: "POST" });
+  fetchTasks();
+}
+
+addForm.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const title = titleInput.value.trim();
+  if (!title) return;
+  addTask(title);
+  titleInput.value = "";
+});
+
+fetchTasks();
+</script>
+
+</body>
+</html>
