@@ -44,3 +44,12 @@ def complete_task(task_id: int):
             t.done = True
             return t
     raise HTTPException(status_code=404, detail="Task not found")
+
+@app.delete("/tasks/{task_id}")
+def delete_task(task_id: int):
+    global tasks
+    for t in tasks:
+        if t.id == task_id:
+            tasks = [task for task in tasks if task.id != task_id]
+            return {"message": "Task deleted"}
+    raise HTTPException(status_code=404, detail="Task not found")

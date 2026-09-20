@@ -8,9 +8,15 @@
   #task-list { list-style: none; padding: 0; }
   #task-list li {
     padding: 8px; border: 1px solid #ccc; margin-bottom: 6px;
-    cursor: pointer; border-radius: 4px;
+    border-radius: 4px; display: flex; justify-content: space-between; align-items: center;
   }
-  #task-list li.done { text-decoration: line-through; color: #888; background: #f0f0f0; }
+  #task-list li.done .task-title { text-decoration: line-through; color: #888; }
+  .task-title { cursor: pointer; flex: 1; }
+  .delete-btn {
+    background: #d9534f; color: #fff; border: none; border-radius: 4px;
+    padding: 4px 8px; cursor: pointer; font-size: 12px; margin-left: 10px;
+  }
+  .delete-btn:hover { background: #c9302c; }
   #add-form { display: flex; gap: 8px; margin-bottom: 20px; }
   #title-input { flex: 1; padding: 6px; }
   button { padding: 6px 12px; }
@@ -44,9 +50,23 @@ function renderTasks(tasks) {
   taskList.innerHTML = "";
   tasks.forEach(task => {
     const li = document.createElement("li");
-    li.textContent = task.title;
     if (task.done) li.classList.add("done");
-    li.addEventListener("click", () => completeTask(task.id));
+
+    const titleSpan = document.createElement("span");
+    titleSpan.textContent = task.title;
+    titleSpan.className = "task-title";
+    titleSpan.addEventListener("click", () => completeTask(task.id));
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.className = "delete-btn";
+    deleteBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      deleteTask(task.id);
+    });
+
+    li.appendChild(titleSpan);
+    li.appendChild(deleteBtn);
     taskList.appendChild(li);
   });
 }
@@ -62,6 +82,11 @@ async function addTask(title) {
 
 async function completeTask(id) {
   await fetch(`${API_URL}/${id}/complete`, { method: "POST" });
+  fetchTasks();
+}
+
+async function deleteTask(id) {
+  await fetch(`${API_URL}/${id}`, { method: "DELETE" });
   fetchTasks();
 }
 
